@@ -24,13 +24,13 @@ random.seed(9001)
 from random import randint
 import statistics
 
-__author__ = "Your Name"
+__author__ = "Aurelien B"
 __copyright__ = "Universite Paris Diderot"
-__credits__ = ["Your Name"]
+__credits__ = ["Aurelien B"]
 __license__ = "GPL"
 __version__ = "1.0.0"
-__maintainer__ = "Your Name"
-__email__ = "your@email.fr"
+__maintainer__ = "Aurelien B"
+__email__ = "burieaurel@eisti.eu"
 __status__ = "Developpement"
 
 def isfile(path):
@@ -66,15 +66,33 @@ def get_arguments():
 
 
 def read_fastq(fastq_file):
-    pass
+	with open(fastq_file,"rt") as monfic:
+		for line in monfic:
+			yield next(monfic)
+			#next(monfic)
+			#next(monfic)
+
+def fonc(fastq_file):
+	for i in read_fastq(fastq_file):
+		print(i)
 
 
 def cut_kmer(read, kmer_size):
-    pass
+	for i in range(len(read)-kmer_size):
+		yield read[i:i+kmer_size]
 
 
 def build_kmer_dict(fastq_file, kmer_size):
-    pass
+	kmer_dict = {}
+	list_kmer =[]
+	sequence = read_fastq(fastq_file)
+	kmer = cut_kmer(next(sequence), kmer_size)
+	for i in kmer:
+		list_kmer.append(i)
+	for kmers in list_kmer:
+		kmer_dict[kmers] = list_kmer.count(kmers)
+	print(kmer_dict)
+	return(kmer_dict)
 
 
 def build_graph(kmer_dict):
@@ -133,6 +151,9 @@ def main():
     """
     # Get arguments
     args = get_arguments()
+    build_kmer_dict(args.fastq_file, args.kmer_size)
+	
+
 
 if __name__ == '__main__':
     main()
