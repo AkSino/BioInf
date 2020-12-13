@@ -18,11 +18,13 @@ import os
 import sys
 import networkx as nx
 import matplotlib
+import matplotlib.pyplot as plt
 from operator import itemgetter
 import random
 random.seed(9001)
 from random import randint
 import statistics
+import pylab
 
 __author__ = "Aurelien B"
 __copyright__ = "Universite Paris Diderot"
@@ -95,8 +97,22 @@ def build_kmer_dict(fastq_file, kmer_size):
 	return(kmer_dict)
 
 
-def build_graph(kmer_dict):
-    pass
+def build_graph(kmer_dict,draw=False):
+	G = nx.DiGraph()
+	for i in kmer_dict:
+		G.add_edge(i[:-1], i[1:], weight=kmer_dict[i])
+	edge_labels=dict([((u,v,),d['weight'])
+		             for u,v,d in G.edges(data=True)])
+	red_edges = [(i[:-1], i[1:]) for i in kmer_dict if kmer_dict[i]>1]
+	edge_colors = ['black' if not edge in red_edges else 'red' for edge in G.edges()]
+	if draw:
+		pos=nx.spring_layout(G)
+		node_labels = {node:node for node in G.nodes()}
+		nx.draw_networkx_labels(G, pos, labels=node_labels)
+		nx.draw_networkx_edge_labels(G,pos,edge_labels=edge_labels)
+		nx.draw(G,pos, node_size=1500,edge_color=edge_colors,edge_cmap=plt.cm.Reds)
+		pylab.show()
+	return G
 
 
 def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
@@ -151,7 +167,9 @@ def main():
     """
     # Get arguments
     args = get_arguments()
-    build_kmer_dict(args.fastq_file, args.kmer_size)
+    dict_kmer = build_kmer_dict(args.fastq_file, args.kmer_size)
+    build_graph(dict_kmer)
+    
 	
 
 
