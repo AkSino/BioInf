@@ -25,6 +25,7 @@ random.seed(9001)
 from random import randint
 import statistics
 import pylab
+from Bio import SeqIO
 
 __author__ = "Aurelien B"
 __copyright__ = "Universite Paris Diderot"
@@ -71,8 +72,8 @@ def read_fastq(fastq_file):
 	with open(fastq_file,"rt") as monfic:
 		for line in monfic:
 			yield next(monfic)
-			#next(monfic)
-			#next(monfic)
+			next(monfic)
+			next(monfic)
 
 def fonc(fastq_file):
 	for i in read_fastq(fastq_file):
@@ -142,16 +143,40 @@ def solve_out_tips(graph, ending_nodes):
     pass
 
 def get_starting_nodes(graph):
-    pass
+	g = graph
+	input_nodes = [u for u, deg in g.in_degree() if deg==0]
+	return(input_nodes)
 
 def get_sink_nodes(graph):
-    pass
+	g = graph
+	output_nodes = [u for u, deg in g.out_degree() if deg==0]
+	return(output_nodes)
 
 def get_contigs(graph, starting_nodes, ending_nodes):
-    pass
+	list_contigs = []
+	for i in starting_nodes:
+		for j in ending_nodes:
+			path = nx.shortest_path(graph,source=i,target=j)
+			print(path)
+			contig = path[0]
+			for k in range(1,len(path)):
+				contig += path[k][-1]
+			length_contig = len(contig)
+			list_contigs.append((contig,length_contig))
+	return list_contigs
+	
+def fill(text, width=80):
+    """Split text with a line return to respect fasta format"""
+    return os.linesep.join(text[i:i+width] for i in range(0, len(text), width))
 
 def save_contigs(contigs_list, output_file):
-    pass
+	fichier = open(output_file, "a")
+	i = 1
+	for contigs in contigs_list:
+		fichier.write(">contig_{} len={}\n".format(i,contigs[1]))
+		i+=1
+		fichier.write("{}\n".format(contigs[0]))
+	fichier.close()
 
 
 def fill(text, width=80):
@@ -162,16 +187,20 @@ def fill(text, width=80):
 # Main program
 #==============================================================
 def main():
-    """
-    Main program function
-    """
-    # Get arguments
-    args = get_arguments()
-    dict_kmer = build_kmer_dict(args.fastq_file, args.kmer_size)
-    build_graph(dict_kmer)
-    
+	"""
+	Main program function
+	"""
+	# Get arguments
+	args = get_arguments()
+	dict_kmer = build_kmer_dict(args.fastq_file, args.kmer_size)
+	graph = build_graph(dict_kmer)
+	sink = get_sink_nodes(graph)
+	starting = get_starting_nodes(graph)
+	print(starting)
+	print(sink)
+	p = get_contigs(graph,starting,sink)
+	print(p)
+	save_contigs(p,args.output_file)
 	
-
-
 if __name__ == '__main__':
     main()
